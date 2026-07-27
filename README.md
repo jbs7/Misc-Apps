@@ -13,7 +13,7 @@ A lightweight, highly customizable, accessible, touch-friendly, and interactive 
 - ♿ **WCAG Compliant Accessibility Options**: Accessible keyboard navigation, audio sonar feedback (Web Audio API), and screen reader ARIA support.
 - 🤖 **Anti-Bot Velocity & Trail Analytics**: Built-in trajectory analysis, drag timing verification, and velocity checks to mitigate automated script attacks.
 - 🧩 **Flexible Directions & Shapes**: Supports `horizontal`, `vertical`, and `2d` drag directions with `circle` or `square` sliders.
-- ⚡ **Zero External Dependencies**: Standalone library with built-in CSS and SVG assets—simply import `captcha.js` and start using it.
+- ⚡ **Zero External Dependencies**: Standalone library with built-in CSS and SVG assets—simply import `captcha.js` or `captcha.min.js`.
 - 🔌 **Seamless Form & Auto-Click Integration**: Automatic button masking, promise-based resolution (`await captcha.promise`), and custom callbacks.
 
 ---
@@ -22,10 +22,10 @@ A lightweight, highly customizable, accessible, touch-friendly, and interactive 
 
 ### 1. Include the Library
 
-Include `captcha.js` directly in your HTML `<head>` or before the closing `</body>` tag:
+Include `captcha.min.js` (or `captcha.js`) directly in your HTML `<head>` or before the closing `</body>` tag:
 
 ```html
-<script src="path/to/captcha.js"></script>
+<script src="path/to/captcha.min.js"></script>
 ```
 
 ### 2. Attach to a Form Button or Container
