@@ -240,7 +240,8 @@
             🛡️ Captcha <span>by JBS</span>
         </div>
         <ul class="nav-list">
-            <li><a href="#quickstart" class="nav-link active"><i class="fa-solid fa-bolt"></i> Quick Start</a></li>
+            <li><a href="#playground" class="nav-link active"><i class="fa-solid fa-gamepad"></i> Captcha Playground</a></li>
+            <li><a href="#quickstart" class="nav-link"><i class="fa-solid fa-bolt"></i> Quick Start</a></li>
             <li><a href="#reference" class="nav-link"><i class="fa-solid fa-sliders"></i> Options Reference</a></li>
             <li><a href="#validation-showcase" class="nav-link"><i class="fa-solid fa-user-check"></i> Form Pre-Validation</a></li>
             <li><a href="#a11y-showcase" class="nav-link"><i class="fa-solid fa-universal-access"></i> Accessibility Modes</a></li>
@@ -254,6 +255,112 @@
             <h1 class="title">🛡️ Captcha <span>by JBS</span></h1>
             <p class="subtitle">Next-Gen Accessible, Touch & Anti-Bot Mobile Security Library</p>
         </header>
+
+        <!-- CAPTCHA PLAYGROUND -->
+        <section id="playground" class="doc-section" style="border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));">
+            <h2 style="color: var(--primary); border-bottom-color: rgba(0, 243, 255, 0.3);">🎮 Captcha Playground</h2>
+            <p>Interactively toggle features, shape, theme, accessibility, and error feedback options below. Real-time live preview updates automatically, and you can copy the generated configuration JSON with 1-click!</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 20px;">
+                <!-- Controls Column -->
+                <div style="background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h3 style="color: #fff; margin-top: 0; margin-bottom: 16px; font-size: 1.1rem;"><i class="fa-solid fa-sliders"></i> Playground Controls</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Preset Type</label>
+                            <select id="pg_type" class="form-input" style="width: 100%;">
+                                <option value="login" selected>login</option>
+                                <option value="register">register</option>
+                                <option value="submit">submit</option>
+                                <option value="pay">pay</option>
+                                <option value="danger">danger</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Target Shape</label>
+                            <select id="pg_shape" class="form-input" style="width: 100%;">
+                                <option value="random" selected>random (Circle/Triangle/Square)</option>
+                                <option value="circle">circle</option>
+                                <option value="square">square</option>
+                                <option value="triangle">triangle</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Size</label>
+                            <select id="pg_size" class="form-input" style="width: 100%;">
+                                <option value="sm">sm</option>
+                                <option value="md" selected>md</option>
+                                <option value="lg">lg</option>
+                                <option value="xl">xl</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Accessibility</label>
+                            <select id="pg_accessibility" class="form-input" style="width: 100%;">
+                                <option value="on" selected>on</option>
+                                <option value="off">off</option>
+                                <option value="always">always</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Error Position</label>
+                            <select id="pg_errorPosition" class="form-input" style="width: 100%;">
+                                <option value="above" selected>above</option>
+                                <option value="inside">inside</option>
+                                <option value="custom">custom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Theme</label>
+                            <select id="pg_theme" class="form-input" style="width: 100%;">
+                                <option value="dark" selected>dark</option>
+                                <option value="light">light</option>
+                                <option value="auto">auto</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+                        <label style="font-size: 0.85rem; color: #e2e8f0; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" id="pg_animation" checked> Enable Trail Animation
+                        </label>
+                        <label style="font-size: 0.85rem; color: #e2e8f0; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" id="pg_tooltip" checked> Show Tooltip
+                        </label>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size: 0.82rem; color: #94a3b8; display: block; margin-bottom: 4px;">Custom Label</label>
+                        <input type="text" id="pg_label" class="form-input" style="width: 100%;" value="Slide to verify account">
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" id="pg_btnTestError" style="flex: 1; padding: 8px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ff4d4d; border-radius: 6px; font-weight: 600; cursor: pointer;">⚡ Trigger Validation Error</button>
+                        <button type="button" id="pg_btnReset" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); color: #fff; border-radius: 6px; font-weight: 600; cursor: pointer;">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Preview & JSON Output Column -->
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Live Component Box -->
+                    <div style="background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                        <span style="font-size: 0.8rem; color: var(--primary); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 12px;">Live Captcha Preview</span>
+                        <div id="playgroundCaptchaContainer" style="display: flex; justify-content: center; align-items: center; min-height: 90px; width: 100%;"></div>
+                        <div id="pgLog" style="display: none; margin-top: 12px; font-size: 0.85rem; font-weight: bold; color: #50fa7b;"></div>
+                    </div>
+
+                    <!-- Config JSON Box -->
+                    <div class="code-box" style="flex: 1; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">Configuration Output (JS / JSON)</span>
+                            <button type="button" class="copy-btn" id="pgCopyJsonBtn" onclick="copyPlaygroundJson()" style="position: static;">Copy JSON</button>
+                        </div>
+                        <pre style="flex: 1;"><code id="pgJsonCode"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- 1. QUICK START GUIDE -->
         <section id="quickstart" class="doc-section">
@@ -651,6 +758,24 @@
             });
         }
 
+        function copyPlaygroundJson() {
+            const codeElem = document.getElementById('pgJsonCode');
+            if (codeElem) {
+                navigator.clipboard.writeText(codeElem.innerText).then(() => {
+                    const btn = document.getElementById('pgCopyJsonBtn');
+                    const orig = btn.innerText;
+                    btn.innerText = 'Copied!';
+                    btn.style.background = '#50fa7b';
+                    btn.style.color = '#000';
+                    setTimeout(() => {
+                        btn.innerText = orig;
+                        btn.style.background = '';
+                        btn.style.color = '';
+                    }, 2000);
+                });
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const mobileToggle = document.getElementById('mobileToggle');
             const sidebarNav = document.getElementById('sidebarNav');
@@ -669,6 +794,86 @@
                     });
                 });
             }
+
+            // CAPTCHA PLAYGROUND LOGIC
+            let pgCaptchaInstance = null;
+            function updatePlayground() {
+                const container = document.getElementById('playgroundCaptchaContainer');
+                if (!container) return;
+
+                // Re-create target button inside container
+                container.innerHTML = `<button type="button" id="pgTargetBtn" class="btn-target-demo" style="max-width: 320px;">Execute Action</button>`;
+
+                const config = {
+                    type: document.getElementById('pg_type').value,
+                    shape: document.getElementById('pg_shape').value,
+                    size: document.getElementById('pg_size').value,
+                    accessibility: document.getElementById('pg_accessibility').value,
+                    errorPosition: document.getElementById('pg_errorPosition').value,
+                    theme: document.getElementById('pg_theme').value,
+                    animation: document.getElementById('pg_animation').checked,
+                    tooltip: document.getElementById('pg_tooltip').checked,
+                    label: document.getElementById('pg_label').value || 'Slide to verify',
+                    errorDuration: 3000,
+                    init: function() {
+                        return true;
+                    },
+                    onSuccess: function() {
+                        const log = document.getElementById('pgLog');
+                        log.style.display = 'block';
+                        log.innerHTML = '✔ Verified Successfully!';
+                    }
+                };
+
+                // Initialize Captcha
+                pgCaptchaInstance = captcha('#pgTargetBtn', config);
+
+                // Format JSON output
+                const jsonDisplay = {
+                    type: config.type,
+                    shape: config.shape,
+                    size: config.size,
+                    accessibility: config.accessibility,
+                    errorPosition: config.errorPosition,
+                    errorDuration: config.errorDuration,
+                    theme: config.theme,
+                    animation: config.animation,
+                    tooltip: config.tooltip,
+                    label: config.label
+                };
+                document.getElementById('pgJsonCode').innerText = JSON.stringify(jsonDisplay, null, 2);
+            }
+
+            // Bind Playground inputs
+            const pgInputs = ['pg_type', 'pg_shape', 'pg_size', 'pg_accessibility', 'pg_errorPosition', 'pg_theme', 'pg_animation', 'pg_tooltip', 'pg_label'];
+            pgInputs.forEach(id => {
+                const elem = document.getElementById(id);
+                if (elem) {
+                    elem.addEventListener('change', updatePlayground);
+                    elem.addEventListener('input', updatePlayground);
+                }
+            });
+
+            document.getElementById('pg_btnTestError').addEventListener('click', () => {
+                if (pgCaptchaInstance && typeof pgCaptchaInstance.showValidationError === 'function') {
+                    pgCaptchaInstance.showValidationError('This is a test validation error!');
+                }
+            });
+
+            document.getElementById('pg_btnReset').addEventListener('click', () => {
+                document.getElementById('pg_type').value = 'login';
+                document.getElementById('pg_shape').value = 'random';
+                document.getElementById('pg_size').value = 'md';
+                document.getElementById('pg_accessibility').value = 'on';
+                document.getElementById('pg_errorPosition').value = 'above';
+                document.getElementById('pg_theme').value = 'dark';
+                document.getElementById('pg_animation').checked = true;
+                document.getElementById('pg_tooltip').checked = true;
+                document.getElementById('pg_label').value = 'Slide to verify account';
+                updatePlayground();
+            });
+
+            updatePlayground();
 
             function bindActionLog(buttonId, logId, actionName) {
                 const btn = document.getElementById(buttonId);
