@@ -136,11 +136,13 @@ class JBSCaptcha {
 
             tolerance: 16,
             colors: {},
-            init: null,                           // Validation Callback function: () => boolean | string
+            init: null,                           // Validation Callback function: () => boolean | string | { valid: boolean, message?: string, focusTarget?: string|HTMLElement }
             onBeforeSubmit: null,                 // Legacy alias
             onBeforeStart: null,                  // Legacy alias
             validationErrorText: "Please fill out required form fields first",
             errorPosition: "above",               // "above" (banner above captcha box) | "inside" (inside captcha text) | "custom" (user handles display)
+            errorDuration: 3000,                  // Duration in ms to display error feedback (default 3000ms)
+            focusTarget: null,                    // CSS selector or HTMLElement to focus when validation fails
             onSuccess: null
         }, options);
 
@@ -403,17 +405,19 @@ class JBSCaptcha {
             .jbs-text.is-error {
                 color: #ff4d4d !important;
                 font-weight: 700;
-                animation: jbs-flash-error 0.5s ease-in-out 2;
+                animation: jbs-shake-pulse 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
             }
 
             .jbs-captcha.is-error {
                 border-color: #ef4444 !important;
-                box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+                box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+                animation: jbs-shake-pulse 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
             }
 
-            @keyframes jbs-flash-error {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.4; }
+            @keyframes jbs-shake-pulse {
+                0%, 100% { transform: translateX(0); }
+                20%, 60% { transform: translateX(-6px); }
+                40%, 80% { transform: translateX(6px); }
             }
 
             .jbs-split-row.size-sm .jbs-text { font-size: 11px; }
@@ -875,8 +879,13 @@ class JBSCaptcha {
             const res = validateFn();
             let isOk = true;
             let msg = this.config.validationErrorText;
+            let target = this.config.focusTarget;
 
-            if (typeof res === 'string') {
+            if (typeof res === 'object' && res !== null) {
+                isOk = res.valid !== false;
+                if (res.message) msg = res.message;
+                if (res.focusTarget) target = res.focusTarget;
+            } else if (typeof res === 'string') {
                 isOk = false;
                 if (res.trim().length > 0) {
                     msg = res;
@@ -886,22 +895,32 @@ class JBSCaptcha {
             }
 
             if (!isOk) {
-                this.showValidationError(msg);
+                this.showValidationError(msg, target);
                 return false;
             }
         }
         return true;
     }
 
-    showValidationError(msg) {
+    showValidationError(msg, target = null) {
         const errorMsg = msg || this.config.validationErrorText;
         const pos = this.config.errorPosition;
+        const duration = typeof this.config.errorDuration === 'number' ? this.config.errorDuration : 3000;
+
+        // Auto-focus target input element if specified
+        const focusElem = target || this.config.focusTarget;
+        if (focusElem) {
+            const elem = typeof focusElem === 'string' ? document.querySelector(focusElem) : focusElem;
+            if (elem && typeof elem.focus === 'function') {
+                try { elem.focus(); } catch (_e) {}
+            }
+        }
 
         if (pos === 'custom') {
             // User handles displaying their own error UI
             if (this.wrapper) {
                 this.wrapper.classList.add('is-error');
-                setTimeout(() => this.wrapper.classList.remove('is-error'), 2500);
+                setTimeout(() => this.wrapper.classList.remove('is-error'), duration);
             }
             if (this.announceNode) this.announceNode.innerText = errorMsg;
             return;
@@ -915,7 +934,7 @@ class JBSCaptcha {
             setTimeout(() => {
                 this.errorBannerNode.style.display = 'none';
                 this.wrapper.classList.remove('is-error');
-            }, 2500);
+            }, duration);
         } else if (pos === 'inside' && this.textContentNode) {
             const originalContent = this.textContentNode.innerHTML;
             this.textContentNode.innerHTML = `⚠️ ${errorMsg}`;
@@ -926,7 +945,7 @@ class JBSCaptcha {
                 this.textNode.classList.remove('is-error');
                 this.wrapper.classList.remove('is-error');
                 this.textContentNode.innerHTML = originalContent;
-            }, 2500);
+            }, duration);
         }
 
         if (this.tooltipNode) {
@@ -936,7 +955,7 @@ class JBSCaptcha {
             setTimeout(() => {
                 this.tooltipNode.classList.remove('is-warning');
                 this.tooltipNode.innerHTML = originalTooltip;
-            }, 2500);
+            }, duration);
         }
 
         if (this.announceNode) {

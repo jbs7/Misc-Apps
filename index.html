@@ -380,13 +380,13 @@
 
         <!-- 3. FORM PRE-VALIDATION CALLBACK SHOWCASE -->
         <section id="validation-showcase">
-            <h2 style="color: #fff; margin-bottom: 20px;">3. Form Pre-Validation Callback (`onBeforeSubmit` / `onBeforeStart`)</h2>
+            <h2 style="color: #fff; margin-bottom: 20px;">3. Form Pre-Validation Callback (`init`), `errorPosition`, `focusTarget` & `errorDuration`</h2>
             <div class="grid">
 
                 <div class="card">
                     <div>
-                        <h3>Login Form Validation (`onBeforeSubmit`)</h3>
-                        <p>Allows swiping first. If validation returns a custom error string, it flashes in red on the captcha bar and resets.</p>
+                        <h3>Banner Error + Auto-Focus (`init`, `errorPosition: 'above'`)</h3>
+                        <p>Displays smooth red error banner above captcha box & automatically redirects cursor to the empty input field.</p>
                         <div class="demo-area">
                             <input type="email" id="loginEmail" class="form-input" placeholder="Email address (e.g. user@jbs.com)">
                             <input type="password" id="loginPass" class="form-input" placeholder="Password">
@@ -398,11 +398,13 @@
                         <button type="button" class="copy-btn" onclick="copyCode(this)">Copy</button>
                         <pre><code><span class="hl-func">captcha</span>('<span class="hl-val">#valLoginBtn</span>', {
   <span class="hl-key">type</span>: '<span class="hl-val">login</span>',
-  <span class="hl-key">onBeforeSubmit</span>: <span class="hl-func">function</span>() {
+  <span class="hl-key">errorPosition</span>: '<span class="hl-val">above</span>',
+  <span class="hl-key">errorDuration</span>: <span class="hl-val">3000</span>,
+  <span class="hl-key">init</span>: <span class="hl-func">function</span>() {
     <span class="hl-key">const</span> email = document.getElementById('<span class="hl-val">loginEmail</span>').value.trim();
     <span class="hl-key">const</span> pass = document.getElementById('<span class="hl-val">loginPass</span>').value.trim();
-    <span class="hl-key">if</span> (!email) <span class="hl-key">return</span> '<span class="hl-val">Please enter valid Email</span>';
-    <span class="hl-key">if</span> (!pass) <span class="hl-key">return</span> '<span class="hl-val">Please enter Password</span>';
+    <span class="hl-key">if</span> (!email) <span class="hl-key">return</span> { <span class="hl-key">valid</span>: false, <span class="hl-key">message</span>: '<span class="hl-val">Please enter valid Email</span>', <span class="hl-key">focusTarget</span>: '<span class="hl-val">#loginEmail</span>' };
+    <span class="hl-key">if</span> (!pass) <span class="hl-key">return</span> { <span class="hl-key">valid</span>: false, <span class="hl-key">message</span>: '<span class="hl-val">Please enter Password</span>', <span class="hl-key">focusTarget</span>: '<span class="hl-val">#loginPass</span>' };
     <span class="hl-key">return</span> true;
   }
 });</code></pre>
@@ -411,13 +413,14 @@
 
                 <div class="card">
                     <div>
-                        <h3>Register Form Validation (`onBeforeSubmit`)</h3>
-                        <p>Returns custom message prompting user to check terms and conditions before completion.</p>
+                        <h3>Custom Error UI (`errorPosition: 'custom'`)</h3>
+                        <p>Allows developers to display error feedback on their own custom form error element without modifying captcha UI.</p>
                         <div class="demo-area">
                             <input type="text" id="regUser" class="form-input" placeholder="Desired Username">
                             <div style="font-size: 0.85rem; margin-bottom: 8px;">
                                 <input type="checkbox" id="regTerms"> I agree to terms
                             </div>
+                            <div id="customErrBox" style="display: none; color: #ef4444; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;"></div>
                             <button type="button" id="valRegBtn" class="btn-target-demo btn-safe-demo">Register</button>
                             <div id="logValReg" class="action-log"></div>
                         </div>
@@ -426,11 +429,13 @@
                         <button type="button" class="copy-btn" onclick="copyCode(this)">Copy</button>
                         <pre><code><span class="hl-func">captcha</span>('<span class="hl-val">#valRegBtn</span>', {
   <span class="hl-key">type</span>: '<span class="hl-val">register</span>',
-  <span class="hl-key">onBeforeSubmit</span>: <span class="hl-func">function</span>() {
+  <span class="hl-key">errorPosition</span>: '<span class="hl-val">custom</span>',
+  <span class="hl-key">init</span>: <span class="hl-func">function</span>() {
     <span class="hl-key">const</span> user = document.getElementById('<span class="hl-val">regUser</span>').value.trim();
     <span class="hl-key">const</span> terms = document.getElementById('<span class="hl-val">regTerms</span>').checked;
-    <span class="hl-key">if</span> (!user) <span class="hl-key">return</span> '<span class="hl-val">Enter desired Username</span>';
-    <span class="hl-key">if</span> (!terms) <span class="hl-key">return</span> '<span class="hl-val">Check Terms & Conditions</span>';
+    <span class="hl-key">if</span> (!user) { $('#customErrBox').text('<span class="hl-val">Enter Username</span>').show(); <span class="hl-key">return</span> false; }
+    <span class="hl-key">if</span> (!terms) { $('#customErrBox').text('<span class="hl-val">Check Terms</span>').show(); <span class="hl-key">return</span> false; }
+    $('#customErrBox').hide();
     <span class="hl-key">return</span> true;
   }
 });</code></pre>
@@ -679,11 +684,13 @@
             captcha('#valLoginBtn', {
                 type: 'login',
                 theme: 'dark',
-                onBeforeSubmit: function() {
+                errorPosition: 'above',
+                errorDuration: 3000,
+                init: function() {
                     const email = document.getElementById('loginEmail').value.trim();
                     const pass = document.getElementById('loginPass').value.trim();
-                    if (!email) return "Please enter valid Email address";
-                    if (!pass) return "Please enter Password";
+                    if (!email) return { valid: false, message: "Please enter valid Email address", focusTarget: "#loginEmail" };
+                    if (!pass) return { valid: false, message: "Please enter Password", focusTarget: "#loginPass" };
                     return true;
                 }
             });
@@ -692,11 +699,27 @@
             captcha('#valRegBtn', {
                 type: 'register',
                 theme: 'dark',
-                onBeforeSubmit: function() {
+                errorPosition: 'custom',
+                errorDuration: 3000,
+                init: function() {
                     const user = document.getElementById('regUser').value.trim();
                     const terms = document.getElementById('regTerms').checked;
-                    if (!user) return "Please enter desired Username";
-                    if (!terms) return "Check the Terms & Conditions checkbox";
+                    const errBox = document.getElementById('customErrBox');
+
+                    if (!user) {
+                        errBox.style.display = 'block';
+                        errBox.innerText = '⚠️ Please enter desired Username';
+                        document.getElementById('regUser').focus();
+                        return false;
+                    }
+                    if (!terms) {
+                        errBox.style.display = 'block';
+                        errBox.innerText = '⚠️ Check the Terms & Conditions checkbox';
+                        document.getElementById('regTerms').focus();
+                        return false;
+                    }
+
+                    errBox.style.display = 'none';
                     return true;
                 }
             });
