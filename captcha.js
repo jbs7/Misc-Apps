@@ -136,9 +136,11 @@ class JBSCaptcha {
 
             tolerance: 16,
             colors: {},
-            onBeforeSubmit: null,                 // Validation Callback function: () => boolean | string
-            onBeforeStart: null,                  // Validation Callback function: () => boolean | string
+            init: null,                           // Validation Callback function: () => boolean | string
+            onBeforeSubmit: null,                 // Legacy alias
+            onBeforeStart: null,                  // Legacy alias
             validationErrorText: "Please fill out required form fields first",
+            errorPosition: "above",               // "above" (banner above captcha box) | "inside" (inside captcha text) | "custom" (user handles display)
             onSuccess: null
         }, options);
 
@@ -513,6 +515,22 @@ class JBSCaptcha {
             .jbs-split-row.size-lg .jbs-slider svg { width: 21px; height: 21px; }
             .jbs-split-row.size-xl .jbs-slider svg { width: 25px; height: 25px; }
 
+            .jbs-error-banner {
+                margin-bottom: 8px;
+                padding: 6px 12px;
+                background: rgba(239, 68, 68, 0.12);
+                border: 1px solid #ef4444;
+                border-radius: 6px;
+                color: #ff4d4d;
+                font-size: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                animation: jbs-flash-error 0.5s ease-in-out 2;
+                transition: opacity 0.3s ease;
+            }
+
             .jbs-tooltip {
                 position: absolute;
                 bottom: calc(100% + 8px);
@@ -667,6 +685,7 @@ class JBSCaptcha {
 
         this.container.innerHTML = `
             <div class="jbs-captcha-wrapper">
+                <div class="jbs-error-banner" style="display: none;" role="alert"></div>
                 <div class="jbs-split-row ${rowLayoutClass} ${sizeClass} ${shapeClass}">
                     <div class="jbs-captcha ${animClass}">
                         ${tooltipHTML}
@@ -694,6 +713,7 @@ class JBSCaptcha {
             </div>
         `;
 
+        this.errorBannerNode = this.container.querySelector('.jbs-error-banner');
         this.splitRow = this.container.querySelector('.jbs-split-row');
         this.wrapper = this.container.querySelector('.jbs-captcha');
         this.canvas = this.container.querySelector('.jbs-draw-canvas');
@@ -850,7 +870,7 @@ class JBSCaptcha {
     }
 
     _checkValidationBeforeStart() {
-        const validateFn = this.config.onBeforeSubmit || this.config.onBeforeStart;
+        const validateFn = this.config.init || this.config.onBeforeSubmit || this.config.onBeforeStart;
         if (typeof validateFn === 'function') {
             const res = validateFn();
             let isOk = true;
@@ -875,8 +895,28 @@ class JBSCaptcha {
 
     showValidationError(msg) {
         const errorMsg = msg || this.config.validationErrorText;
+        const pos = this.config.errorPosition;
 
-        if (this.textContentNode) {
+        if (pos === 'custom') {
+            // User handles displaying their own error UI
+            if (this.wrapper) {
+                this.wrapper.classList.add('is-error');
+                setTimeout(() => this.wrapper.classList.remove('is-error'), 2500);
+            }
+            if (this.announceNode) this.announceNode.innerText = errorMsg;
+            return;
+        }
+
+        if (pos === 'above' && this.errorBannerNode) {
+            this.errorBannerNode.innerHTML = `<span>⚠️</span> <span>${errorMsg}</span>`;
+            this.errorBannerNode.style.display = 'flex';
+            this.wrapper.classList.add('is-error');
+
+            setTimeout(() => {
+                this.errorBannerNode.style.display = 'none';
+                this.wrapper.classList.remove('is-error');
+            }, 2500);
+        } else if (pos === 'inside' && this.textContentNode) {
             const originalContent = this.textContentNode.innerHTML;
             this.textContentNode.innerHTML = `⚠️ ${errorMsg}`;
             this.textNode.classList.add('is-error');
