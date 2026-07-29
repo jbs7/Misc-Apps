@@ -380,13 +380,13 @@
 
         <!-- 3. FORM PRE-VALIDATION CALLBACK SHOWCASE -->
         <section id="validation-showcase">
-            <h2 style="color: #fff; margin-bottom: 20px;">3. Form Pre-Validation Callback (`onBeforeStart`)</h2>
+            <h2 style="color: #fff; margin-bottom: 20px;">3. Form Pre-Validation Callback (`onBeforeSubmit` / `onBeforeStart`)</h2>
             <div class="grid">
 
                 <div class="card">
                     <div>
-                        <h3>Login Form Validation (`onBeforeStart`)</h3>
-                        <p>Try sliding BEFORE filling in Email & Password. Swiping unlocks only after valid inputs.</p>
+                        <h3>Login Form Validation (`onBeforeSubmit`)</h3>
+                        <p>Allows swiping first. If validation returns a custom error string, it flashes in red on the captcha bar and resets.</p>
                         <div class="demo-area">
                             <input type="email" id="loginEmail" class="form-input" placeholder="Email address (e.g. user@jbs.com)">
                             <input type="password" id="loginPass" class="form-input" placeholder="Password">
@@ -398,10 +398,12 @@
                         <button type="button" class="copy-btn" onclick="copyCode(this)">Copy</button>
                         <pre><code><span class="hl-func">captcha</span>('<span class="hl-val">#valLoginBtn</span>', {
   <span class="hl-key">type</span>: '<span class="hl-val">login</span>',
-  <span class="hl-key">onBeforeStart</span>: <span class="hl-func">function</span>() {
-    <span class="hl-key">const</span> email = document.getElementById('<span class="hl-val">loginEmail</span>').value;
-    <span class="hl-key">const</span> pass = document.getElementById('<span class="hl-val">loginPass</span>').value;
-    <span class="hl-key">return</span> email !== '' && pass !== '';
+  <span class="hl-key">onBeforeSubmit</span>: <span class="hl-func">function</span>() {
+    <span class="hl-key">const</span> email = document.getElementById('<span class="hl-val">loginEmail</span>').value.trim();
+    <span class="hl-key">const</span> pass = document.getElementById('<span class="hl-val">loginPass</span>').value.trim();
+    <span class="hl-key">if</span> (!email) <span class="hl-key">return</span> '<span class="hl-val">Please enter valid Email</span>';
+    <span class="hl-key">if</span> (!pass) <span class="hl-key">return</span> '<span class="hl-val">Please enter Password</span>';
+    <span class="hl-key">return</span> true;
   }
 });</code></pre>
                     </div>
@@ -409,8 +411,8 @@
 
                 <div class="card">
                     <div>
-                        <h3>Register Form Validation (`onBeforeStart`)</h3>
-                        <p>Requires username & agreed terms checkbox before sliding is enabled.</p>
+                        <h3>Register Form Validation (`onBeforeSubmit`)</h3>
+                        <p>Returns custom message prompting user to check terms and conditions before completion.</p>
                         <div class="demo-area">
                             <input type="text" id="regUser" class="form-input" placeholder="Desired Username">
                             <div style="font-size: 0.85rem; margin-bottom: 8px;">
@@ -424,10 +426,12 @@
                         <button type="button" class="copy-btn" onclick="copyCode(this)">Copy</button>
                         <pre><code><span class="hl-func">captcha</span>('<span class="hl-val">#valRegBtn</span>', {
   <span class="hl-key">type</span>: '<span class="hl-val">register</span>',
-  <span class="hl-key">onBeforeStart</span>: <span class="hl-func">function</span>() {
-    <span class="hl-key">const</span> user = document.getElementById('<span class="hl-val">regUser</span>').value;
+  <span class="hl-key">onBeforeSubmit</span>: <span class="hl-func">function</span>() {
+    <span class="hl-key">const</span> user = document.getElementById('<span class="hl-val">regUser</span>').value.trim();
     <span class="hl-key">const</span> terms = document.getElementById('<span class="hl-val">regTerms</span>').checked;
-    <span class="hl-key">return</span> user !== '' && terms;
+    <span class="hl-key">if</span> (!user) <span class="hl-key">return</span> '<span class="hl-val">Enter desired Username</span>';
+    <span class="hl-key">if</span> (!terms) <span class="hl-key">return</span> '<span class="hl-val">Check Terms & Conditions</span>';
+    <span class="hl-key">return</span> true;
   }
 });</code></pre>
                     </div>
@@ -675,10 +679,12 @@
             captcha('#valLoginBtn', {
                 type: 'login',
                 theme: 'dark',
-                onBeforeStart: function() {
+                onBeforeSubmit: function() {
                     const email = document.getElementById('loginEmail').value.trim();
                     const pass = document.getElementById('loginPass').value.trim();
-                    return email !== '' && pass !== '';
+                    if (!email) return "Please enter valid Email address";
+                    if (!pass) return "Please enter Password";
+                    return true;
                 }
             });
             bindActionLog('valLoginBtn', 'logValLogin', 'Validated Login');
@@ -686,10 +692,12 @@
             captcha('#valRegBtn', {
                 type: 'register',
                 theme: 'dark',
-                onBeforeStart: function() {
+                onBeforeSubmit: function() {
                     const user = document.getElementById('regUser').value.trim();
                     const terms = document.getElementById('regTerms').checked;
-                    return user !== '' && terms;
+                    if (!user) return "Please enter desired Username";
+                    if (!terms) return "Check the Terms & Conditions checkbox";
+                    return true;
                 }
             });
             bindActionLog('valRegBtn', 'logValReg', 'Validated Registration');

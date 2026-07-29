@@ -136,7 +136,8 @@ class JBSCaptcha {
 
             tolerance: 16,
             colors: {},
-            onBeforeStart: null,                  // Validation Callback function: () => boolean
+            onBeforeSubmit: null,                 // Validation Callback function: () => boolean | string
+            onBeforeStart: null,                  // Validation Callback function: () => boolean | string
             validationErrorText: "Please fill out required form fields first",
             onSuccess: null
         }, options);
@@ -392,8 +393,25 @@ class JBSCaptcha {
                 text-transform: uppercase;
                 z-index: 1;
                 pointer-events: none;
-                transition: opacity 0.3s;
+                transition: color 0.3s ease, opacity 0.3s ease;
                 text-align: center;
+                padding: 0 12px;
+            }
+
+            .jbs-text.is-error {
+                color: #ff4d4d !important;
+                font-weight: 700;
+                animation: jbs-flash-error 0.5s ease-in-out 2;
+            }
+
+            .jbs-captcha.is-error {
+                border-color: #ef4444 !important;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+            }
+
+            @keyframes jbs-flash-error {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.4; }
             }
 
             .jbs-split-row.size-sm .jbs-text { font-size: 11px; }
@@ -832,23 +850,58 @@ class JBSCaptcha {
     }
 
     _checkValidationBeforeStart() {
-        if (typeof this.config.onBeforeStart === 'function') {
-            const isValid = this.config.onBeforeStart();
-            if (!isValid) {
-                if (this.tooltipNode) {
-                    const originalText = this.tooltipNode.innerHTML;
-                    this.tooltipNode.innerHTML = `⚠️ ${this.config.validationErrorText}`;
-                    this.tooltipNode.classList.add('is-warning');
-                    setTimeout(() => {
-                        this.tooltipNode.classList.remove('is-warning');
-                        this.tooltipNode.innerHTML = originalText;
-                    }, 2500);
+        const validateFn = this.config.onBeforeSubmit || this.config.onBeforeStart;
+        if (typeof validateFn === 'function') {
+            const res = validateFn();
+            let isOk = true;
+            let msg = this.config.validationErrorText;
+
+            if (typeof res === 'string') {
+                isOk = false;
+                if (res.trim().length > 0) {
+                    msg = res;
                 }
-                this.announceNode.innerText = this.config.validationErrorText;
+            } else if (res === false) {
+                isOk = false;
+            }
+
+            if (!isOk) {
+                this.showValidationError(msg);
                 return false;
             }
         }
         return true;
+    }
+
+    showValidationError(msg) {
+        const errorMsg = msg || this.config.validationErrorText;
+
+        if (this.textContentNode) {
+            const originalContent = this.textContentNode.innerHTML;
+            this.textContentNode.innerHTML = `⚠️ ${errorMsg}`;
+            this.textNode.classList.add('is-error');
+            this.wrapper.classList.add('is-error');
+
+            setTimeout(() => {
+                this.textNode.classList.remove('is-error');
+                this.wrapper.classList.remove('is-error');
+                this.textContentNode.innerHTML = originalContent;
+            }, 2500);
+        }
+
+        if (this.tooltipNode) {
+            const originalTooltip = this.tooltipNode.innerHTML;
+            this.tooltipNode.innerHTML = `⚠️ ${errorMsg}`;
+            this.tooltipNode.classList.add('is-warning');
+            setTimeout(() => {
+                this.tooltipNode.classList.remove('is-warning');
+                this.tooltipNode.innerHTML = originalTooltip;
+            }, 2500);
+        }
+
+        if (this.announceNode) {
+            this.announceNode.innerText = errorMsg;
+        }
     }
 
     _onTouchStart(e) {
