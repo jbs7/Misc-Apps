@@ -557,6 +557,24 @@
                     </div>
                 </div>
 
+                <div class="card">
+                    <div>
+                        <h3>Random Shape (`shape: random`)</h3>
+                        <p>Randomly selects circle, triangle, or square on page load.</p>
+                        <div class="demo-area">
+                            <button type="button" id="shapeRandomBtn" class="btn-target-demo">Random Shape Action</button>
+                            <div id="logShapeRandom" class="action-log"></div>
+                        </div>
+                    </div>
+                    <div class="code-box">
+                        <button type="button" class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="hl-func">captcha</span>('<span class="hl-val">#shapeRandomBtn</span>', {
+  <span class="hl-key">type</span>: '<span class="hl-val">login</span>',
+  <span class="hl-key">shape</span>: '<span class="hl-val">random</span>'
+});</code></pre>
+                    </div>
+                </div>
+
             </div>
         </section>
 
@@ -695,6 +713,9 @@
 
             captcha('#shapeTriangleBtn', { type: 'delete', shape: 'triangle', theme: 'dark' });
             bindActionLog('shapeTriangleBtn', 'logShapeTriangle', 'Triangle Account Delete');
+
+            captcha('#shapeRandomBtn', { type: 'login', shape: 'random', theme: 'dark' });
+            bindActionLog('shapeRandomBtn', 'logShapeRandom', 'Random Shape Action');
 
             // DIRECTION DEMOS
             captcha('#dirHorizontalBtn', { type: 'login', direction: 'horizontal', theme: 'dark' });

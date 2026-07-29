@@ -98,7 +98,11 @@ class JBSCaptcha {
 
         const direction = options.direction || 'horizontal';
         const size = options.size || 'md';
-        const shape = options.shape || 'circle';
+        const validShapes = ['circle', 'triangle', 'square'];
+        let shape = options.shape || 'circle';
+        if (shape === 'random') {
+            shape = validShapes[Math.floor(Math.random() * validShapes.length)];
+        }
 
         let a11yMode = options.accessibility || 'on';
         if (options.showAccessibility === false) a11yMode = 'off';
@@ -628,6 +632,12 @@ class JBSCaptcha {
                     <button type="button" class="jbs-a11y-btn jbs-step-right" aria-label="Move slider right">
                         Step Right ►
                     </button>
+                    <button type="button" class="jbs-a11y-btn jbs-step-up" aria-label="Move slider up">
+                        ▲ Step Up
+                    </button>
+                    <button type="button" class="jbs-a11y-btn jbs-step-down" aria-label="Move slider down">
+                        ▼ Step Down
+                    </button>
                     <button type="button" class="jbs-a11y-btn jbs-audio-toggle" aria-label="Toggle audio sonar feedback">
                         🔊 Sonar
                     </button>
@@ -680,6 +690,8 @@ class JBSCaptcha {
         this.a11yToolbar = this.container.querySelector('.jbs-a11y-toolbar');
         this.btnLeft = this.container.querySelector('.jbs-step-left');
         this.btnRight = this.container.querySelector('.jbs-step-right');
+        this.btnUp = this.container.querySelector('.jbs-step-up');
+        this.btnDown = this.container.querySelector('.jbs-step-down');
         this.btnAudio = this.container.querySelector('.jbs-audio-toggle');
 
         requestAnimationFrame(() => {
@@ -806,8 +818,10 @@ class JBSCaptcha {
             });
         }
 
-        if (this.btnLeft) this.btnLeft.addEventListener('click', () => this._stepSlider(-10));
-        if (this.btnRight) this.btnRight.addEventListener('click', () => this._stepSlider(10));
+        if (this.btnLeft) this.btnLeft.addEventListener('click', () => this._stepSlider(-10, 0));
+        if (this.btnRight) this.btnRight.addEventListener('click', () => this._stepSlider(10, 0));
+        if (this.btnUp) this.btnUp.addEventListener('click', () => this._stepSlider(0, -10));
+        if (this.btnDown) this.btnDown.addEventListener('click', () => this._stepSlider(0, 10));
         if (this.btnAudio) {
             this.btnAudio.addEventListener('click', () => {
                 this.state.audioMuted = !this.state.audioMuted;
@@ -839,7 +853,6 @@ class JBSCaptcha {
 
     _onTouchStart(e) {
         if (this.state.solved || !e.touches || !e.touches[0]) return;
-        if (!this._checkValidationBeforeStart()) return;
         e.preventDefault();
         const touch = e.touches[0];
         this._startDrag(touch.clientX, touch.clientY);
@@ -859,7 +872,6 @@ class JBSCaptcha {
 
     _onPointerDown(e) {
         if (this.state.solved) return;
-        if (!this._checkValidationBeforeStart()) return;
         this._startDrag(e.clientX, e.clientY);
     }
 
@@ -927,27 +939,28 @@ class JBSCaptcha {
         this._validate();
     }
 
-    _stepSlider(amount) {
+    _stepSlider(dx = 0, dy = 0) {
         if (this.state.solved) return;
-        if (!this._checkValidationBeforeStart()) return;
         this._initAudio();
 
         this.wrapper.classList.add('is-active-sliding');
 
-        let newX = Math.max(0, Math.min(this.state.maxSlideX, this.state.currentX + amount));
+        let newX = Math.max(0, Math.min(this.state.maxSlideX, this.state.currentX + dx));
+        let newY = Math.max(0, Math.min(this.state.maxSlideY, this.state.currentY + dy));
+
+        if (this.config.direction === 'horizontal') {
+            newY = (this.wrapper.offsetHeight / 2) - (this.sliderNode.offsetHeight / 2) - 4;
+        } else if (this.config.direction === 'vertical') {
+            newX = 0;
+        }
+
         this.state.currentX = newX;
-        this.sliderNode.style.transform = `translate(${newX}px, ${this.state.currentY}px)`;
+        this.state.currentY = newY;
+        this.sliderNode.style.transform = `translate(${newX}px, ${newY}px)`;
 
         this._playAudioSonar(newX);
 
-        const targetWidth = this.targetNode.offsetWidth;
-        const sliderWidth = this.sliderNode.offsetWidth;
-        const tol = this.config.tolerance;
-
-        if (this.state.currentX >= (this.state.targetX - tol) && 
-            this.state.currentX <= (this.state.targetX + targetWidth - sliderWidth + tol)) {
-            this._triggerSuccess();
-        }
+        this._validate();
     }
 
     _initAudio() {
@@ -986,7 +999,6 @@ class JBSCaptcha {
 
     _onKeyDown(e) {
         if (this.state.solved) return;
-        if (!this._checkValidationBeforeStart()) return;
         this._initAudio();
         this.wrapper.classList.add('is-active-sliding');
 
@@ -1011,13 +1023,7 @@ class JBSCaptcha {
         this.sliderNode.style.transform = `translate(${newX}px, ${this.state.currentY}px)`;
         this._playAudioSonar(newX);
 
-        const targetWidth = this.targetNode.offsetWidth;
-        const sliderWidth = this.sliderNode.offsetWidth;
-        const tol = this.config.tolerance;
-
-        if (newX >= (this.state.targetX - tol) && newX <= (this.state.targetX + targetWidth - sliderWidth + tol)) {
-            this._triggerSuccess();
-        }
+        this._validate();
     }
 
     _verifyHumanPath() {
@@ -1050,6 +1056,16 @@ class JBSCaptcha {
     }
 
     _validate() {
+        const isValid = this._checkValidationBeforeStart();
+        if (!isValid) {
+            this.state.currentX = this.state.initialX;
+            this.state.currentY = this.state.initialY;
+            this.sliderNode.style.transform = `translate(${this.state.currentX}px, ${this.state.currentY}px)`;
+            this.textNode.style.opacity = '1';
+            this._clearDrawingTrail();
+            return;
+        }
+
         const targetWidth = this.targetNode.offsetWidth;
         const sliderWidth = this.sliderNode.offsetWidth;
         const targetHeight = this.targetNode.offsetHeight;
@@ -1097,10 +1113,12 @@ class JBSCaptcha {
 
         this.announceNode.innerText = `${this.config.verifiedText}. Verification successful.`;
 
-        if (this.btnLeft) this.btnLeft.disabled = true;
-        if (this.btnRight) this.btnRight.disabled = true;
-        if (this.btnLeft) this.btnLeft.style.opacity = '0.5';
-        if (this.btnRight) this.btnRight.style.opacity = '0.5';
+        [this.btnLeft, this.btnRight, this.btnUp, this.btnDown].forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+        });
 
         // 1. Execute explicit user-defined onSuccess callback if specified
         if (typeof this.config.onSuccess === 'function') {
