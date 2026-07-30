@@ -142,6 +142,8 @@ class JBSCaptcha {
             validationErrorText: "Please fill out required form fields first",
             errorPosition: "above",               // "above" (banner above captcha box) | "inside" (inside captcha text) | "custom" (user handles display)
             errorDuration: 3000,                  // Duration in ms to display error feedback (default 3000ms)
+            resetTimeout: 3,                       // Auto-reset timeout in seconds after success (0 or false to disable auto timeout reset)
+            resetOnInputChange: true,              // Auto reset captcha when inputs/selects in the parent form are edited
             focusTarget: null,                    // CSS selector or HTMLElement to focus when validation fails
             onSuccess: null
         }, options);
@@ -166,6 +168,8 @@ class JBSCaptcha {
             a11yOpen: this.config.accessibility === 'always',
             pointerTrail: []
         };
+
+        this._resetTimer = null;
 
         this.audioCtx = null;
         this._resolvePromise = null;
@@ -871,6 +875,54 @@ class JBSCaptcha {
                 this.announceNode.innerText = this.state.audioMuted ? "Audio sonar disabled" : "Audio sonar enabled";
             });
         }
+
+        if (this.config.resetOnInputChange) {
+            const form = this.container.closest('form') || document;
+            const onInputHandler = () => {
+                if (this.state.solved) {
+                    this.reset();
+                }
+            };
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('input', onInputHandler);
+                el.addEventListener('change', onInputHandler);
+            });
+        }
+    }
+
+    reset() {
+        if (this._resetTimer) {
+            clearTimeout(this._resetTimer);
+            this._resetTimer = null;
+        }
+
+        this.state.solved = false;
+        this.wrapper.classList.remove('is-verified', 'is-error');
+
+        this.textNode.innerHTML = `<span class="jbs-text-content">${this.config.label}</span>`;
+        this.textNode.style.opacity = '1';
+        this.textNode.classList.remove('is-error');
+
+        this.targetNode.style.opacity = '';
+        this.sliderNode.style.opacity = '';
+        this.sliderNode.style.pointerEvents = '';
+        this.sliderNode.classList.remove('is-active-sliding');
+
+        [this.btnLeft, this.btnRight, this.btnUp, this.btnDown].forEach(btn => {
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        });
+
+        this._setupButtonBehavior();
+        this._initializePositions();
+        this._clearDrawingTrail();
+        this.announceNode.innerText = "Captcha reset. Swipe to continue.";
+
+        this.promise = new Promise((resolve) => {
+            this._resolvePromise = resolve;
+        });
     }
 
     _checkValidationBeforeStart() {
@@ -1254,6 +1306,14 @@ class JBSCaptcha {
 
         if (this._resolvePromise) {
             this._resolvePromise(true);
+        }
+
+        const timeoutSec = Number(this.config.resetTimeout);
+        if (timeoutSec && timeoutSec > 0) {
+            if (this._resetTimer) clearTimeout(this._resetTimer);
+            this._resetTimer = setTimeout(() => {
+                this.reset();
+            }, timeoutSec * 1000);
         }
     }
 
