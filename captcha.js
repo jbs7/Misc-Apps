@@ -918,6 +918,12 @@ class JBSCaptcha {
         this._setupButtonBehavior();
         this._initializePositions();
         this._clearDrawingTrail();
+
+        window.removeEventListener('pointermove', this._onPointerMove);
+        window.removeEventListener('pointerup', this._onPointerUp);
+        window.addEventListener('pointermove', this._onPointerMove);
+        window.addEventListener('pointerup', this._onPointerUp);
+
         this.announceNode.innerText = "Captcha reset. Swipe to continue.";
 
         this.promise = new Promise((resolve) => {
